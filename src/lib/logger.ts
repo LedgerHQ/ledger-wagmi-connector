@@ -8,14 +8,14 @@ export const getDebugLogger = (context: string): Logger => {
       console.debug(`[${context}] ${message}`, ...others);
     }
   };
-}
+};
 
 export const getErrorLogger = (context: string): Logger => {
   return (message: string, ...others: unknown[]) => {
     console.error(`[${context}] ${message}`, ...others);
   };
-}
+};
 
 export const enableDebugLogs = (): void => {
-  debugLogsEnabled = true
+  debugLogsEnabled = true;
 };

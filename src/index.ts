@@ -2,7 +2,7 @@ import {
   loadConnectKit,
   LedgerConnectKit,
   SupportedProviders,
-  SupportedProviderImplementations
+  SupportedProviderImplementations,
 } from '@ledgerhq/connect-kit-loader';
 import { providers } from 'ethers';
 import { getAddress } from 'ethers/lib/utils';
@@ -13,13 +13,9 @@ import {
   UserRejectedRequestError,
   Chain,
   RpcError,
-  ConnectorData
+  ConnectorData,
 } from '@wagmi/core';
-import {
-  getDebugLogger,
-  getErrorLogger,
-  enableDebugLogs
-} from './lib/logger';
+import { getDebugLogger, getErrorLogger, enableDebugLogs } from './lib/logger';
 
 const log = getDebugLogger('LWC');
 const logError = getErrorLogger('LWC');
@@ -46,8 +42,8 @@ type LedgerConnectorOptions = {
    * @see https://github.com/MetaMask/metamask-extension/issues/10353
    * @default true
    */
-   shimDisconnect?: boolean;
-}
+  shimDisconnect?: boolean;
+};
 
 type LedgerSigner = providers.JsonRpcSigner;
 
@@ -60,9 +56,9 @@ export class LedgerConnector extends Connector<
   readonly name = 'Ledger';
   readonly ready = true;
 
-  #connectKitPromise: Promise<LedgerConnectKit>;
-  #provider?: EthereumProvider;
-  #providerImplementation?: SupportedProviderImplementations;
+  private connectKitPromise: Promise<LedgerConnectKit>;
+  private provider?: EthereumProvider;
+  private providerImplementation?: SupportedProviderImplementations;
 
   protected shimDisconnectKey = 'ledger.shimDisconnect';
 
@@ -70,8 +66,8 @@ export class LedgerConnector extends Connector<
     chains,
     options = { shimDisconnect: true, enableDebugLogs: false },
   }: {
-    chains?: Chain[]
-    options?: LedgerConnectorOptions
+    chains?: Chain[];
+    options?: LedgerConnectorOptions;
   } = {}) {
     super({ chains, options });
 
@@ -83,15 +79,17 @@ export class LedgerConnector extends Connector<
     log('chains are', chains);
     log('options are', options);
 
-    this.#connectKitPromise = loadConnectKit();
+    this.connectKitPromise = loadConnectKit();
   }
 
-  async connect({ chainId }: { chainId?: number } = {}): Promise<Required<ConnectorData>> {
+  async connect({ chainId }: { chainId?: number } = {}): Promise<
+    Required<ConnectorData>
+  > {
     log('connect', chainId);
 
     try {
       log('getting Connect Kit');
-      const connectKit = await this.#connectKitPromise;
+      const connectKit = await this.connectKitPromise;
 
       if (this.options.enableDebugLogs) {
         connectKit.enableDebugLogs();
@@ -105,7 +103,7 @@ export class LedgerConnector extends Connector<
         rpc: this.options.rpc,
       });
       // make the current provider implementation available
-      this.#providerImplementation = checkSupportResult.providerImplementation;
+      this.providerImplementation = checkSupportResult.providerImplementation;
 
       const provider = await this.getProvider();
 
@@ -131,7 +129,8 @@ export class LedgerConnector extends Connector<
       // add shim to storage signalling wallet is connected
       if (
         this.options?.shimDisconnect &&
-        this.#providerImplementation === SupportedProviderImplementations.LedgerConnect
+        this.providerImplementation ===
+          SupportedProviderImplementations.LedgerConnect
       ) {
         log('setting shimDisconnect state', unsupported);
         localStorage.setItem(this.shimDisconnectKey, 'true');
@@ -141,17 +140,17 @@ export class LedgerConnector extends Connector<
         account,
         chain: { id, unsupported },
         provider: new providers.Web3Provider(
-          <providers.ExternalProvider>provider,
+          provider as providers.ExternalProvider
         ),
       };
     } catch (error) {
-      if ((<ProviderRpcError>error).code === 4001) {
+      if ((error as ProviderRpcError).code === 4001) {
         logError('user rejected', error);
         throw new UserRejectedRequestError(error);
       }
-      if ((<RpcError>error).code === -32002) {
+      if ((error as RpcError).code === -32002) {
         logError('RPC error -32002, Resource unavailable', error);
-        throw (error instanceof Error) ? error : new Error(String(error));
+        throw error instanceof Error ? error : new Error(String(error));
       }
 
       logError('error in connect', error);
@@ -167,7 +166,8 @@ export class LedgerConnector extends Connector<
     // call disconnect if provider is WalletConnect
     if (
       !!provider &&
-      this.#providerImplementation === SupportedProviderImplementations.WalletConnect
+      this.providerImplementation ===
+        SupportedProviderImplementations.WalletConnect
     ) {
       log('disconnecting WalletConnect');
       await provider.disconnect();
@@ -183,10 +183,12 @@ export class LedgerConnector extends Connector<
     // remove shim signalling wallet is disconnected
     if (
       this.options?.shimDisconnect &&
-      this.#providerImplementation === SupportedProviderImplementations.LedgerConnect
+      this.providerImplementation ===
+        SupportedProviderImplementations.LedgerConnect
     ) {
       log('removing shim/walletconnect state');
-      this.options?.shimDisconnect && typeof localStorage !== 'undefined' &&
+      this.options?.shimDisconnect &&
+        typeof localStorage !== 'undefined' &&
         localStorage.removeItem(this.shimDisconnectKey);
     }
   }
@@ -195,9 +197,9 @@ export class LedgerConnector extends Connector<
     log('getAccount');
 
     const provider = await this.getProvider();
-    const accounts = await provider.request({
-      method: 'eth_requestAccounts'
-    }) as string[];
+    const accounts = (await provider.request({
+      method: 'eth_requestAccounts',
+    })) as string[];
     const account = getAddress(accounts[0] as string);
     log('account is', account);
 
@@ -208,9 +210,9 @@ export class LedgerConnector extends Connector<
     log('getChainId');
 
     const provider = await this.getProvider();
-    const chainId = await provider.request({
-      method: 'eth_chainId'
-    }) as number;
+    const chainId = (await provider.request({
+      method: 'eth_chainId',
+    })) as number;
     log('chainId is', chainId, normalizeChainId(chainId));
 
     return normalizeChainId(chainId);
@@ -219,13 +221,13 @@ export class LedgerConnector extends Connector<
   async getProvider() {
     log('getProvider');
 
-    if (!this.#provider) {
+    if (!this.provider) {
       log('getting provider from Connect Kit');
-      const connectKit = await this.#connectKitPromise;
-      this.#provider = await connectKit.getProvider() as EthereumProvider;
-      log('provider is', this.#provider);
+      const connectKit = await this.connectKitPromise;
+      this.provider = (await connectKit.getProvider()) as EthereumProvider;
+      log('provider is', this.provider);
     }
-    return this.#provider;
+    return this.provider;
   }
 
   async getSigner() {
@@ -254,9 +256,9 @@ export class LedgerConnector extends Connector<
       }
 
       const provider = await this.getProvider();
-      const accounts = await provider.request({
+      const accounts = (await provider.request({
         method: 'eth_accounts',
-      }) as string[];
+      })) as string[];
       const account = accounts[0];
       log('account', account);
 
@@ -270,8 +272,8 @@ export class LedgerConnector extends Connector<
     log('onAccountsChanged');
 
     if (accounts.length === 0) this.emit('disconnect');
-    else this.emit('change', { account: getAddress(<string>accounts[0]) });
-  }
+    else this.emit('change', { account: getAddress(accounts[0] as string) });
+  };
 
   protected onChainChanged = (chainId: number | string) => {
     log('onChainChanged');
@@ -279,7 +281,7 @@ export class LedgerConnector extends Connector<
     const id = normalizeChainId(chainId);
     const unsupported = this.isChainUnsupported(id);
     this.emit('change', { chain: { id, unsupported } });
-  }
+  };
 
   protected onDisconnect = () => {
     log('onDisconnect');
@@ -289,5 +291,5 @@ export class LedgerConnector extends Connector<
       log('removing shimDisconnect flag');
       localStorage.removeItem(this.shimDisconnectKey);
     }
-  }
+  };
 }
