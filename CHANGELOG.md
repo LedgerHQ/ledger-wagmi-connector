@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.0.0-beta.1 - 2022-11-14
 This is the first public version of the package.
 
 ### Added
 - Allow connecting to a Ledger hardware wallet using the Ledger Connect
   Safari extension, or Ledger Live Desktop and Mobile through WalletConnect.
-
