@@ -1525,10 +1525,10 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@ledgerhq/connect-kit-loader@^1.0.0-beta.5":
-  version "1.0.0-beta.5"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/connect-kit-loader/-/connect-kit-loader-1.0.0-beta.5.tgz#af8534468aabb6128b9637fcd5a3ade4c170b23a"
-  integrity sha512-zNO6GktIjiec5JEgLirxPqSvJf9ZldCNXj6FbsTRO+B8ynYOE5+RUv90CvLwCA/GZLhtrXsczmz2fX0vxjknWQ==
+"@ledgerhq/connect-kit-loader@^1.0.0-beta.6":
+  version "1.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/connect-kit-loader/-/connect-kit-loader-1.0.0-beta.6.tgz#9c8f498b53bf39d428ee03c0bbbfe292be6012ca"
+  integrity sha512-wb9sG9GFQw/TDqh1LRJeXxwsKoD55dXw2+HWYWoMTGApfLtK4YTzPar3k7SDMk5eC+MU/+kziuaSo3JCxynRrg==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"

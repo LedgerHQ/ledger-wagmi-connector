@@ -55,7 +55,7 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@ledgerhq/connect-kit-loader": "^1.0.0-beta.5",
+    "@ledgerhq/connect-kit-loader": "^1.0.0-beta.6",
     "@wagmi/core": "0.5.6",
     "ethers": "^5.7.2"
   }
