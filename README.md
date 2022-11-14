@@ -43,12 +43,12 @@ export const connectors = {
 # Contributing
 
 **You need to have a recent [Node.js](https://nodejs.org/) and
-[pnpm](https://pnpm.io) installed.**
+[yarn](https://yarnpkg.com) installed.**
 
 ## Install dependencies
 
 ```bash
-pnpm install
+yarn install
 ```
 
 ## Build
@@ -56,7 +56,7 @@ pnpm install
 Build the Connector
 
 ```bash
-pnpm build
+yarn build
 ```
 
 ## Lint
@@ -64,7 +64,7 @@ pnpm build
 Check code quality with
 
 ```bash
-pnpm lint
+yarn lint
 ```
 
 # Documentation

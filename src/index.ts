@@ -3,6 +3,7 @@ import {
   LedgerConnectKit,
   SupportedProviders,
   SupportedProviderImplementations,
+  EthereumProvider,
 } from '@ledgerhq/connect-kit-loader';
 import { providers } from 'ethers';
 import { getAddress } from 'ethers/lib/utils';
@@ -19,15 +20,6 @@ import { getDebugLogger, getErrorLogger, enableDebugLogs } from './lib/logger';
 
 const log = getDebugLogger('LWC');
 const logError = getErrorLogger('LWC');
-
-interface EthereumProvider {
-  providers?: EthereumProvider[];
-  request(...args: unknown[]): Promise<unknown>;
-  disconnect(): Promise<void>;
-  emit(eventName: string | symbol, ...args: any[]): boolean;
-  on(...args: unknown[]): void;
-  removeListener(...args: unknown[]): void;
-}
 
 type LedgerConnectorOptions = {
   bridge?: string;
