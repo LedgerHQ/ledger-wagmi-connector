@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Changed
+- Make disconnect optional in EthereumProvider and simplify disconnect logic.
 - Add missing chainId to connector options.
 
 ## 1.0.0-beta.1 - 2022-11-14

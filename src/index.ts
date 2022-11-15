@@ -2,7 +2,6 @@ import {
   loadConnectKit,
   LedgerConnectKit,
   SupportedProviders,
-  SupportedProviderImplementations,
   EthereumProvider,
 } from '@ledgerhq/connect-kit-loader';
 import { providers } from 'ethers';
@@ -28,14 +27,6 @@ type LedgerConnectorOptions = {
   rpc?: { [chainId: number]: string };
 
   enableDebugLogs?: boolean;
-
-  /**
-   * MetaMask and other injected providers do not support programmatic disconnect.
-   * This flag simulates the disconnect behavior by keeping track of connection status in storage.
-   * @see https://github.com/MetaMask/metamask-extension/issues/10353
-   * @default true
-   */
-  shimDisconnect?: boolean;
 };
 
 type LedgerSigner = providers.JsonRpcSigner;
@@ -51,13 +42,10 @@ export class LedgerConnector extends Connector<
 
   private connectKitPromise: Promise<LedgerConnectKit>;
   private provider?: EthereumProvider;
-  private providerImplementation?: SupportedProviderImplementations;
-
-  protected shimDisconnectKey = 'ledger.shimDisconnect';
 
   constructor({
     chains,
-    options = { shimDisconnect: true, enableDebugLogs: false },
+    options = { enableDebugLogs: false },
   }: {
     chains?: Chain[];
     options?: LedgerConnectorOptions;
@@ -89,14 +77,12 @@ export class LedgerConnector extends Connector<
       }
 
       log('checking Connect support');
-      const checkSupportResult = connectKit.checkSupport({
+      connectKit.checkSupport({
         providerType: SupportedProviders.Ethereum,
         chainId: this.options.chainId,
         infuraId: this.options.infuraId,
         rpc: this.options.rpc,
       });
-      // make the current provider implementation available
-      this.providerImplementation = checkSupportResult.providerImplementation;
 
       const provider = await this.getProvider();
 
@@ -113,16 +99,6 @@ export class LedgerConnector extends Connector<
       const id = await this.getChainId();
       const unsupported = this.isChainUnsupported(id);
       log('unsupported is', unsupported);
-
-      // add shim to storage signalling wallet is connected
-      if (
-        this.options?.shimDisconnect &&
-        this.providerImplementation ===
-          SupportedProviderImplementations.LedgerConnect
-      ) {
-        log('setting shimDisconnect state', unsupported);
-        localStorage.setItem(this.shimDisconnectKey, 'true');
-      }
 
       return {
         account,
@@ -151,33 +127,16 @@ export class LedgerConnector extends Connector<
 
     const provider = await this.getProvider();
 
-    // call disconnect if provider is WalletConnect
-    if (
-      !!provider &&
-      this.providerImplementation ===
-        SupportedProviderImplementations.WalletConnect
-    ) {
-      log('disconnecting WalletConnect');
+    if (!!provider?.disconnect) {
+      log('disconnecting provider');
       await provider.disconnect();
     }
 
-    if (provider.removeListener) {
+    if (provider?.removeListener) {
       log('removing event handlers');
       provider.removeListener('accountsChanged', this.onAccountsChanged);
       provider.removeListener('chainChanged', this.onChainChanged);
       provider.removeListener('disconnect', this.onDisconnect);
-    }
-
-    // remove shim signalling wallet is disconnected
-    if (
-      this.options?.shimDisconnect &&
-      this.providerImplementation ===
-        SupportedProviderImplementations.LedgerConnect
-    ) {
-      log('removing shim/walletconnect state');
-      this.options?.shimDisconnect &&
-        typeof localStorage !== 'undefined' &&
-        localStorage.removeItem(this.shimDisconnectKey);
     }
   }
 
@@ -234,15 +193,6 @@ export class LedgerConnector extends Connector<
     log('isAuthorized');
 
     try {
-      // don't authorize if shim does not exist in storage
-      if (
-        this.options?.shimDisconnect &&
-        typeof localStorage !== 'undefined' &&
-        localStorage.getItem(this.shimDisconnectKey)
-      ) {
-        return false;
-      }
-
       const provider = await this.getProvider();
       const accounts = (await provider.request({
         method: 'eth_accounts',
@@ -274,10 +224,5 @@ export class LedgerConnector extends Connector<
   protected onDisconnect = () => {
     log('onDisconnect');
     this.emit('disconnect');
-
-    if (this.options?.shimDisconnect && typeof localStorage !== 'undefined') {
-      log('removing shimDisconnect flag');
-      localStorage.removeItem(this.shimDisconnectKey);
-    }
   };
 }
