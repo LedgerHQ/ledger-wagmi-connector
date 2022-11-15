@@ -22,6 +22,7 @@ const log = getDebugLogger('LWC');
 const logError = getErrorLogger('LWC');
 
 type LedgerConnectorOptions = {
+  chainId?: number;
   bridge?: string;
   infuraId?: string;
   rpc?: { [chainId: number]: string };
@@ -74,10 +75,10 @@ export class LedgerConnector extends Connector<
     this.connectKitPromise = loadConnectKit();
   }
 
-  async connect({ chainId }: { chainId?: number } = {}): Promise<
+  async connect(): Promise<
     Required<ConnectorData>
   > {
-    log('connect', chainId);
+    log('connect');
 
     try {
       log('getting Connect Kit');
@@ -90,7 +91,7 @@ export class LedgerConnector extends Connector<
       log('checking Connect support');
       const checkSupportResult = connectKit.checkSupport({
         providerType: SupportedProviders.Ethereum,
-        chainId: chainId,
+        chainId: this.options.chainId,
         infuraId: this.options.infuraId,
         rpc: this.options.rpc,
       });
@@ -112,11 +113,6 @@ export class LedgerConnector extends Connector<
       const id = await this.getChainId();
       const unsupported = this.isChainUnsupported(id);
       log('unsupported is', unsupported);
-
-      // TODO we currently dont pass a chainId to connect()?
-      if (chainId && id !== chainId) {
-        log('wallet set a different chainId', id);
-      }
 
       // add shim to storage signalling wallet is connected
       if (
