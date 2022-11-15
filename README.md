@@ -4,7 +4,9 @@
 [wagmi](https://github.com/wagmi-dev/wagmi) library based on the Ledger Connect Kit,
 [@ledgerhq/connect-kit](https://github.com/ledgerhq/connect-kit).
 
-It can be used to add a Ledger button to your DApp.
+This connector can be used to add a Ledger button to your DApp. Have a look at
+the [Ledger developer portal](https://developers.ledger.com/docs/connect/introduction/)
+for more information on Connect Kit and the Ledger button.
 
 ## How to use
 
@@ -15,12 +17,10 @@ import { configureChains, defaultChains } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 import { LedgerConnector } from '@ledgerhq/ledger-wagmi-connector';
 
-// Configure chains for connectors to support
 const { chains } = configureChains(defaultChains, [
   publicProvider()
 ]);
 
-// Set up connectors
 export const connectors = {
   ledger: new LedgerConnector({
     chains,
