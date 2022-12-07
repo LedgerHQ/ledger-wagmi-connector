@@ -84,7 +84,7 @@ export class LedgerConnector extends Connector<
         rpc: this.options.rpc,
       });
 
-      const provider = await this.getProvider();
+      const provider = await this.getProvider({ forceCreate: true });
 
       if (provider.on) {
         log('assigning event handlers');
@@ -165,10 +165,14 @@ export class LedgerConnector extends Connector<
     return normalizeChainId(chainId);
   }
 
-  async getProvider() {
+  async getProvider(
+    { forceCreate }: { chainId?: number; forceCreate?: boolean } = {
+      forceCreate: false,
+    },
+  ) {
     log('getProvider');
 
-    if (!this.provider) {
+    if (!this.provider || forceCreate) {
       log('getting provider from Connect Kit');
       const connectKit = await this.connectKitPromise;
       this.provider = (await connectKit.getProvider()) as EthereumProvider;
@@ -223,6 +227,5 @@ export class LedgerConnector extends Connector<
 
   protected onDisconnect = () => {
     log('onDisconnect');
-    this.emit('disconnect');
   };
 }
